@@ -1,0 +1,439 @@
+/* =====================================================================
+   ODYSSEY — Departments page
+   Planet-orbit department selector + synchronized detail card
+   Reuses tokens from main.css. --accent is set per active department.
+   ===================================================================== */
+
+:root {
+  --accent: var(--cyan);
+  --accent-glow: rgba(56, 189, 248, 0.5);
+}
+
+/* ---------------------------------------------------------------------
+   HERO — full-viewport orbit scene
+   --------------------------------------------------------------------- */
+.dept-hero {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  min-height: 620px;
+  overflow: hidden;
+  isolation: isolate;
+  background: var(--bg-0);
+}
+
+/* Dim galaxy backdrop */
+.dept-hero-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background:
+    radial-gradient(1100px 640px at 78% -12%, rgba(56, 189, 248, 0.12), transparent 60%),
+    radial-gradient(900px 620px at 12% 116%, rgba(249, 115, 22, 0.10), transparent 60%),
+    url('../img/bg-galaxy.jpg') center/cover no-repeat,
+    var(--bg-0);
+  opacity: 0.55;
+}
+.dept-hero::after {
+  /* vignette to seat the planets into deep space */
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    radial-gradient(120% 90% at 50% 116%, transparent 40%, rgba(4, 5, 10, 0.55) 100%),
+    linear-gradient(180deg, rgba(4, 5, 10, 0.55) 0%, transparent 26%, transparent 62%, rgba(4, 5, 10, 0.7) 100%);
+}
+
+/* Parallax star layers */
+.stars-layer,
+.stars-layer-2 {
+  position: absolute;
+  inset: -6%;
+  z-index: 1;
+  will-change: transform;
+}
+.stars-layer {
+  background-image:
+    radial-gradient(1px 1px at 20px 30px, #fff, transparent),
+    radial-gradient(1px 1px at 40px 70px, rgba(255,255,255,0.8), transparent),
+    radial-gradient(1px 1px at 90px 40px, rgba(255,255,255,0.6), transparent),
+    radial-gradient(1px 1px at 130px 80px, #fff, transparent),
+    radial-gradient(1px 1px at 160px 30px, rgba(200,220,255,0.7), transparent),
+    radial-gradient(1.5px 1.5px at 200px 60px, rgba(180,200,255,0.9), transparent),
+    radial-gradient(1px 1px at 250px 20px, #fff, transparent),
+    radial-gradient(1px 1px at 300px 90px, rgba(255,255,255,0.5), transparent);
+  background-size: 320px 100px;
+  animation: dept-twinkle 8s ease-in-out infinite alternate;
+}
+.stars-layer-2 {
+  background-image:
+    radial-gradient(1px 1px at 50px 50px, rgba(255,255,255,0.9), transparent),
+    radial-gradient(0.8px 0.8px at 100px 20px, rgba(200,210,255,0.7), transparent),
+    radial-gradient(1.2px 1.2px at 180px 70px, rgba(255,255,255,0.6), transparent),
+    radial-gradient(1px 1px at 220px 40px, #fff, transparent),
+    radial-gradient(0.8px 0.8px at 280px 80px, rgba(180,190,255,0.8), transparent),
+    radial-gradient(1px 1px at 350px 30px, rgba(255,255,255,0.5), transparent);
+  background-size: 400px 100px;
+  animation: dept-twinkle 12s ease-in-out infinite alternate-reverse;
+}
+@keyframes dept-twinkle { from { opacity: 0.55; } to { opacity: 1; } }
+
+.nebula-layer {
+  position: absolute;
+  inset: -6%;
+  z-index: 1;
+  pointer-events: none;
+  will-change: transform;
+  transition: background 1.1s var(--ease);
+  background:
+    radial-gradient(ellipse at 22% 46%, rgba(56, 189, 248, 0.10) 0%, transparent 52%),
+    radial-gradient(ellipse at 80% 32%, rgba(139, 92, 246, 0.08) 0%, transparent 44%),
+    radial-gradient(ellipse at 50% 84%, var(--accent-glow) 0%, transparent 46%);
+  opacity: 0.7;
+}
+
+/* Header eyebrow — clears the floating nav */
+.dept-hero-head {
+  position: absolute;
+  top: 118px;
+  left: 0; right: 0;
+  z-index: 6;
+  text-align: center;
+}
+.dept-hero-head .eyebrow { justify-content: center; }
+.dept-hero-head .eyebrow::before { display: none; }
+
+/* Planets */
+.planets-container {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+}
+.planet {
+  position: absolute;
+  border-radius: 50%;
+  overflow: visible;
+  cursor: pointer;
+  transition:
+    width 1.1s cubic-bezier(0.4, 0, 0.2, 1),
+    height 1.1s cubic-bezier(0.4, 0, 0.2, 1),
+    left 1.1s cubic-bezier(0.4, 0, 0.2, 1),
+    top 1.1s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 1.1s cubic-bezier(0.4, 0, 0.2, 1),
+    filter 1.1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.planet img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  position: relative;
+  z-index: 2;
+  animation: dept-planet-rotate 90s linear infinite;
+}
+@keyframes dept-planet-rotate {
+  from { transform: rotate(0deg) scale(1.04); }
+  to   { transform: rotate(360deg) scale(1.04); }
+}
+.planet-glow {
+  position: absolute;
+  inset: -22%;
+  border-radius: 50%;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.5;
+  transition: opacity 1.1s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 1.1s var(--ease);
+}
+.planet.is-active { z-index: 3; }
+
+/* Glass info panel */
+.glass-panel {
+  position: absolute;
+  top: 27%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 6;
+  text-align: center;
+  padding: 22px 46px;
+  border-radius: 20px;
+  background: rgba(8, 10, 18, 0.42);
+  border: 1px solid var(--glass-border);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  backdrop-filter: blur(16px) saturate(160%);
+  box-shadow:
+    0 18px 50px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 var(--glass-highlight);
+  transition: opacity 0.4s var(--ease), transform 0.4s var(--ease), filter 0.4s var(--ease);
+  max-width: min(90vw, 640px);
+}
+.glass-panel.swapping { opacity: 0; transform: translateX(-50%) translateY(12px); filter: blur(5px); }
+.glass-kicker {
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 8px;
+  transition: color 0.5s var(--ease);
+}
+.glass-title {
+  font-size: clamp(1.7rem, 4.4vw, 3rem);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+.glass-subtitle {
+  margin-top: 10px;
+  font-size: 0.78rem;
+  font-weight: 400;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* Nav arrows */
+.nav-arrow {
+  position: absolute;
+  top: 52%;
+  transform: translateY(-50%);
+  z-index: 7;
+  width: 52px; height: 52px;
+  border-radius: 50%;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  transition: background 0.3s var(--ease), border-color 0.3s var(--ease), transform 0.3s var(--ease), box-shadow 0.3s var(--ease);
+}
+.nav-arrow.prev { left: max(20px, 3vw); }
+.nav-arrow.next { right: max(20px, 3vw); }
+.nav-arrow:hover {
+  background: var(--glass-bg-strong);
+  border-color: var(--accent);
+  box-shadow: 0 0 22px var(--accent-glow);
+  transform: translateY(-50%) scale(1.06);
+}
+.nav-arrow:active { transform: translateY(-50%) scale(0.96); }
+.nav-arrow svg {
+  width: 22px; height: 22px;
+  stroke: rgba(255, 255, 255, 0.85);
+  fill: none; stroke-width: 2;
+  stroke-linecap: round; stroke-linejoin: round;
+}
+
+/* Dot rail + indicator */
+.dept-controls {
+  position: absolute;
+  bottom: 34px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 7;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+.dept-dots { display: flex; gap: 12px; }
+.dept-dots button {
+  width: 9px; height: 9px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.4s var(--ease);
+}
+.dept-dots button:hover { border-color: #fff; transform: scale(1.2); }
+.dept-dots button.active {
+  width: 28px;
+  border-radius: 999px;
+  border-color: transparent;
+  background: var(--accent);
+  box-shadow: 0 0 14px var(--accent-glow);
+}
+.indicator {
+  font-variant-numeric: tabular-nums;
+  font-size: 0.74rem;
+  letter-spacing: 0.3em;
+  color: var(--text-dim);
+}
+
+/* ---------------------------------------------------------------------
+   DETAIL SECTION
+   --------------------------------------------------------------------- */
+.dept-detail-section { padding-top: 96px; padding-bottom: 40px; }
+.section { padding: 96px 0; position: relative; }
+
+.detail-head { max-width: 620px; margin: 0 auto 48px; text-align: center; }
+.detail-head h2 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(1.9rem, 4vw, 2.9rem);
+  line-height: 1.12;
+  margin: 16px 0 14px;
+}
+.detail-head h2 b { font-weight: 600; color: var(--text); }
+.detail-head p { color: var(--text-muted); font-size: 1rem; }
+
+.detail-card {
+  position: relative;
+  max-width: 860px;
+  margin: 0 auto;
+  border-radius: 26px;
+  overflow: hidden;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  -webkit-backdrop-filter: blur(18px) saturate(150%);
+  backdrop-filter: blur(18px) saturate(150%);
+  box-shadow:
+    0 24px 70px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 var(--glass-highlight),
+    0 0 0 1px var(--accent-glow) inset;
+  transition: box-shadow 0.7s var(--ease);
+}
+/* Accent border-glow that tracks the active department */
+.detail-card-glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background:
+    radial-gradient(600px 220px at 8% -10%, var(--accent-glow), transparent 60%),
+    radial-gradient(520px 220px at 100% 120%, var(--accent-glow), transparent 62%);
+  opacity: 0.28;
+  transition: background 0.7s var(--ease);
+}
+.detail-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 3px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  opacity: 0.9;
+  transition: background 0.7s var(--ease);
+}
+.detail-card-inner {
+  position: relative;
+  z-index: 1;
+  padding: 44px 48px 46px;
+  transition: opacity 0.35s var(--ease), transform 0.35s var(--ease);
+}
+.detail-card-inner.swapping { opacity: 0; transform: translateY(10px); }
+
+.detail-top { display: flex; align-items: center; gap: 16px; margin-bottom: 6px; }
+.detail-index {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--accent);
+  transition: color 0.7s var(--ease);
+}
+.detail-eyebrow {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+.detail-name {
+  font-size: clamp(1.7rem, 3.6vw, 2.5rem);
+  font-weight: 600;
+  line-height: 1.08;
+  margin-bottom: 16px;
+}
+.detail-desc {
+  color: var(--text-muted);
+  font-size: 1.04rem;
+  line-height: 1.7;
+  max-width: 62ch;
+  margin-bottom: 26px;
+}
+.detail-chips { display: flex; flex-wrap: wrap; gap: 10px; }
+.detail-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border);
+  transition: border-color 0.4s var(--ease), background 0.4s var(--ease), transform 0.3s var(--ease);
+}
+.detail-chip::before {
+  content: '';
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent-glow);
+}
+.detail-chip:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent);
+  background: rgba(255, 255, 255, 0.09);
+}
+
+/* ---------------------------------------------------------------------
+   CLOSING STRIP
+   --------------------------------------------------------------------- */
+.closing-strip { padding-top: 40px; }
+.closing-inner {
+  position: relative;
+  max-width: 760px;
+  margin: 0 auto;
+  text-align: center;
+  padding: 56px 40px;
+  border-radius: 28px;
+  background: linear-gradient(160deg, rgba(56,189,248,0.06), rgba(249,115,22,0.05));
+  border: 1px solid var(--glass-border);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.4), inset 0 1px 0 var(--glass-highlight);
+  overflow: hidden;
+}
+.closing-inner .eyebrow { justify-content: center; }
+.closing-inner .eyebrow::before { display: none; }
+.closing-inner h2 {
+  font-size: clamp(1.8rem, 4vw, 2.7rem);
+  font-weight: 600;
+  line-height: 1.12;
+  margin: 16px 0 12px;
+}
+.closing-inner h2 b { color: var(--amber-soft); font-weight: 600; }
+.closing-inner p { color: var(--text-muted); margin-bottom: 30px; }
+.closing-actions {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* ---------------------------------------------------------------------
+   RESPONSIVE
+   --------------------------------------------------------------------- */
+@media (max-width: 760px) {
+  .dept-hero { min-height: 560px; }
+  .dept-hero-head { top: 104px; }
+  .glass-panel { padding: 18px 26px; top: 24%; }
+  .glass-title { white-space: normal; }
+  .nav-arrow { width: 46px; height: 46px; }
+  .nav-arrow.prev { left: 14px; }
+  .nav-arrow.next { right: 14px; }
+  .detail-card-inner { padding: 34px 26px 36px; }
+  .detail-desc { font-size: 0.98rem; }
+  .dept-detail-section { padding-top: 72px; }
+  .section { padding: 72px 0; }
+  .closing-inner { padding: 44px 24px; }
+}
+@media (max-width: 460px) {
+  .glass-kicker { letter-spacing: 0.24em; }
+  .detail-top { flex-wrap: wrap; gap: 10px; }
+}
