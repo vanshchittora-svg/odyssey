@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ODYSSEY</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#0b0b0c;
+    --fg:#f2f2f2;
+    --muted:#8a8a8a;
+    --accent:#7c8cff;
+  }
+  html,body{
+    margin:0; padding:0; height:100%; overflow:hidden;
+    background:var(--bg);
+    font-family:'Outfit', Helvetica, Arial, sans-serif;
+  }
+  #stage{
+    position:relative; width:100vw; height:100vh;
+    background:
+      radial-gradient(ellipse at center, rgba(255,255,255,0.04) 0%, rgba(0,0,0,0) 60%),
+      var(--bg);
+    overflow:hidden;
+  }
+  canvas{ position:absolute; inset:0; display:block; }
+
+  #textLayer{
+    position:absolute; inset:0;
+    pointer-events:none;
+  }
+  /* logoText now becomes the solid, final version of the logo. It is
+     sized/spaced with the exact same font-size + letter-spacing math
+     used to sample the particle target points (150px font, 0.14em
+     tracking), and anchored to the same center point (50%,50%) as the
+     particle canvas, so the crossfade lines up pixel-for-pixel. */
+  #logoText{
+    position:absolute; left:51%; top: 47%;
+    transform:translate(-50%,-50%);
+    font-size:150px;
+    line-height:1;
+    font-weight:700;
+    letter-spacing:0.14em;
+    color:var(--fg);
+    background:linear-gradient(90deg,#f2f2f2,var(--accent));
+    -webkit-background-clip:text;
+    background-clip:text;
+    -webkit-text-fill-color:transparent;
+    margin:0;
+    opacity:0;
+    white-space:nowrap;
+  }
+  #divider{
+    position:absolute; left:50%; top:calc(50% + 78px);
+    transform:translateX(-50%);
+    width:0%;
+    height:1px;
+    background:linear-gradient(90deg, transparent, rgba(255,255,255,0.7), transparent);
+    margin:0;
+    transition:width 0.9s cubic-bezier(.4,0,.2,1);
+  }
+  #tagline{
+    position:absolute; left:50%; top:calc(50% + 108px);
+    font-size:clamp(11px, 1.6vw, 15px);
+    font-weight:400;
+    letter-spacing:0.42em;
+    color:var(--muted);
+    text-transform:uppercase;
+    margin:0;
+    white-space:nowrap;
+    opacity:0;
+    transform:translate(-50%, 8px);
+    transition:opacity 1s ease, transform 1s ease;
+  }
+
+</style>
+</head>
+<body>
+<div id="stage">
+  <canvas id="c"></canvas>
+  <div id="textLayer">
+    <p id="logoText">ODYSSEY</p>
+    <div id="divider"></div>
+    <p id="tagline">ROVERS &amp; DRONES TEAM</p>
+  </div>
+</div>
+
+<script>
+(function(){
+  const canvas = document.getElementById('c');
+  const ctx = canvas.getContext('2d');
+  const textLayer = document.getElementById('textLayer');
+  const logoText = document.getElementById('logoText');
+  const divider = document.getElementById('divider');
+  const tagline = document.getElementById('tagline');
+
+  let W, H, DPR;
+  function resize(){
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    W = window.innerWidth; H = window.innerHeight;
+    canvas.width = W * DPR; canvas.height = H * DPR;
+    canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+    ctx.setTransform(DPR,0,0,DPR,0,0);
+  }
+  window.addEventListener('resize', () => { resize(); rebuildTargets(); });
+
+  // ---------- Timeline (ms) ----------
+  // "reveal" crossfades the particle logo into the solid white text,
+  // then the divider+tagline reveal underneath it.
+  const T = {
+    blackHold:     [0,     400],
+    staticNoise:   [400,   1900],
+    ringForm:      [1900,  3100],
+    ringHold:      [3100,  3550],
+    textMorph:     [3550,  4950],
+    textHold:      [4950,  5550],
+    reveal:        [5550,  6150],
+    taglineIn:     [6150,  6950],
+    finalHold:     [6950,  8200]
+  };
+  const TOTAL = T.finalHold[1];
+
+  function easeInOutCubic(t){
+    return t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2,3)/2;
+  }
+  function clamp01(v){ return Math.max(0, Math.min(1, v)); }
+  function progressOf(range, elapsed){
+    return clamp01((elapsed - range[0]) / (range[1] - range[0]));
+  }
+
+  // ---------- Sample "ODYSSEY" text into points ----------
+  function sampleTextPoints(text, targetCount){
+    const off = document.createElement('canvas');
+    const scale = 3;
+    const fontSize = 150 * scale;
+    off.width = 1400 * scale;
+    off.height = 320 * scale;
+    const octx = off.getContext('2d');
+    octx.fillStyle = '#000';
+    octx.fillRect(0,0,off.width, off.height);
+    octx.fillStyle = '#fff';
+    octx.textAlign = 'center';
+    octx.textBaseline = 'middle';
+    octx.font = `700 ${fontSize}px Outfit, Helvetica, Arial, sans-serif`;
+    // manual letter-spacing
+    const spacing = fontSize * 0.14;
+    const letters = text.split('');
+    const widths = letters.map(l => octx.measureText(l).width);
+    const totalWidth = widths.reduce((a,b)=>a+b,0) + spacing*(letters.length-1);
+    let x = off.width/2 - totalWidth/2;
+    const y = off.height/2;
+    for(let i=0;i<letters.length;i++){
+      octx.textAlign = 'left';
+      octx.fillText(letters[i], x, y);
+      x += widths[i] + spacing;
+    }
+    const data = octx.getImageData(0,0,off.width, off.height).data;
+    const pts = [];
+    const step = 5;
+    for(let yy=0; yy<off.height; yy+=step){
+      for(let xx=0; xx<off.width; xx+=step){
+        const idx = (yy*off.width+xx)*4;
+        if(data[idx] > 128){
+          pts.push({
+            x:(xx - off.width/2)/scale,
+            y:(yy - off.height/2)/scale
+          });
+        }
+      }
+    }
+    // shuffle then trim/pad to targetCount
+    for(let i=pts.length-1;i>0;i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [pts[i],pts[j]]=[pts[j],pts[i]];
+    }
+    const out = [];
+    for(let i=0;i<targetCount;i++){
+      const p = pts[i % pts.length];
+      out.push({x:p.x + (Math.random()-0.5)*1.5, y:p.y + (Math.random()-0.5)*1.5});
+    }
+    return out;
+  }
+
+  function ringPoints(count, radius){
+    const out = [];
+    for(let i=0;i<count;i++){
+      const a = (i/count) * Math.PI*2;
+      out.push({x: Math.cos(a)*radius, y: Math.sin(a)*radius});
+    }
+    return out;
+  }
+
+  // ---------- Particles ----------
+  const COUNT = 850;
+  let particles = [];
+  let textTargets = [];
+  let ringTargets = [];
+
+  function rebuildTargets(){
+    textTargets = sampleTextPoints('ODYSSEY', COUNT);
+    const radius = Math.min(W,H) * 0.16;
+    ringTargets = ringPoints(COUNT, radius);
+  }
+
+  function initParticles(){
+    particles = [];
+    for(let i=0;i<COUNT;i++){
+      particles.push({
+        x: Math.random()*W,
+        y: Math.random()*H,
+        fromX:0, fromY:0, toX:0, toY:0,
+        gray: 140 + Math.random()*115,
+        size: 0.8 + Math.random()*1.6,
+        jitterSeed: Math.random()*1000
+      });
+    }
+  }
+
+  let currentPhase = null;
+  function setPhaseTargets(phaseName){
+    const cx = W/2, cy = H/2;
+    if(phaseName === 'staticNoise'){
+      particles.forEach(p=>{
+        p.fromX = p.x; p.fromY = p.y;
+        p.toX = Math.random()*W; p.toY = Math.random()*H;
+      });
+    } else if(phaseName === 'ringForm'){
+      particles.forEach((p,i)=>{
+        p.fromX = p.x; p.fromY = p.y;
+        p.toX = cx + ringTargets[i].x;
+        p.toY = cy + ringTargets[i].y;
+      });
+    } else if(phaseName === 'textMorph'){
+      particles.forEach((p,i)=>{
+        p.fromX = p.x; p.fromY = p.y;
+        p.toX = cx + textTargets[i].x;
+        p.toY = cy + textTargets[i].y;
+      });
+    }
+  }
+
+  // continuous re-randomize during static noise for a flicker effect
+  let lastNoiseReshuffle = 0;
+
+  function update(elapsed){
+    ctx.clearRect(0,0,W,H);
+
+    let phase, p; // p = local progress
+    if(elapsed < T.blackHold[1]){
+      phase='blackHold'; p=0;
+    } else if(elapsed < T.staticNoise[1]){
+      phase='staticNoise'; p=progressOf(T.staticNoise, elapsed);
+    } else if(elapsed < T.ringForm[1]){
+      phase='ringForm'; p=progressOf(T.ringForm, elapsed);
+    } else if(elapsed < T.ringHold[1]){
+      phase='ringHold'; p=progressOf(T.ringHold, elapsed);
+    } else if(elapsed < T.textMorph[1]){
+      phase='textMorph'; p=progressOf(T.textMorph, elapsed);
+    } else if(elapsed < T.textHold[1]){
+      phase='textHold'; p=progressOf(T.textHold, elapsed);
+    } else if(elapsed < T.reveal[1]){
+      phase='reveal'; p=progressOf(T.reveal, elapsed);
+    } else {
+      phase='done'; p=1;
+    }
+
+    if(phase !== currentPhase){
+      if(phase==='staticNoise'||phase==='ringForm'||phase==='textMorph'){
+        setPhaseTargets(phase);
+      }
+      currentPhase = phase;
+    }
+
+    let globalAlpha = 1;
+    let jitterAmt = 0;
+    const cx=W/2, cy=H/2;
+
+    if(phase==='blackHold'){
+      globalAlpha = 0;
+    } else if(phase==='staticNoise'){
+      // reshuffle sub-targets rapidly for flicker/static look
+      if(elapsed - lastNoiseReshuffle > 70){
+        particles.forEach(pt=>{
+          pt.fromX = pt.x; pt.fromY = pt.y;
+          pt.toX = Math.random()*W; pt.toY = Math.random()*H;
+        });
+        lastNoiseReshuffle = elapsed;
+      }
+      const e = easeInOutCubic(clamp01((elapsed - lastNoiseReshuffle)/70));
+      particles.forEach(pt=>{
+        pt.x = pt.fromX + (pt.toX-pt.fromX)*e;
+        pt.y = pt.fromY + (pt.toY-pt.fromY)*e;
+      });
+      globalAlpha = Math.min(1, p*2.2);
+    } else if(phase==='ringForm'){
+      const e = easeInOutCubic(p);
+      particles.forEach(pt=>{
+        pt.x = pt.fromX + (pt.toX-pt.fromX)*e;
+        pt.y = pt.fromY + (pt.toY-pt.fromY)*e;
+      });
+      jitterAmt = (1-e) * 10;
+    } else if(phase==='ringHold'){
+      jitterAmt = 2.5;
+      const wobble = Math.sin(elapsed/90)*1.5;
+      particles.forEach((pt,i)=>{
+        const a = (i/COUNT)*Math.PI*2 + elapsed*0.0002;
+        const radius = Math.min(W,H)*0.16 + wobble;
+        pt.x = W/2 + Math.cos(a)*radius;
+        pt.y = H/2 + Math.sin(a)*radius;
+      });
+    } else if(phase==='textMorph'){
+      const e = easeInOutCubic(p);
+      particles.forEach(pt=>{
+        pt.x = pt.fromX + (pt.toX-pt.fromX)*e;
+        pt.y = pt.fromY + (pt.toY-pt.fromY)*e;
+      });
+      jitterAmt = (1-e) * 8;
+    } else if(phase==='textHold'){
+      jitterAmt = 1.2 * (1-p);
+      particles.forEach((pt,i)=>{
+        pt.x = cx + textTargets[i].x;
+        pt.y = cy + textTargets[i].y;
+      });
+    } else if(phase==='reveal'){
+      // crossfade: particles dissolve out while the solid white logo
+      // fades in, in the exact same position/scale as the particle text
+      const e = easeInOutCubic(p);
+      particles.forEach((pt,i)=>{
+        pt.x = cx + textTargets[i].x;
+        pt.y = cy + textTargets[i].y;
+      });
+      globalAlpha = 1 - e;
+      logoText.style.opacity = e;
+    } else if(phase==='done'){
+      // particles are gone — the solid DOM text is the final logo
+      globalAlpha = 0;
+      logoText.style.opacity = 1;
+    }
+
+    // draw particles
+    if(globalAlpha > 0){
+      particles.forEach(pt=>{
+        const jx = jitterAmt ? (Math.random()-0.5)*jitterAmt : 0;
+        const jy = jitterAmt ? (Math.random()-0.5)*jitterAmt : 0;
+        const g = pt.gray;
+        ctx.fillStyle = `rgba(${g},${g},${g},${globalAlpha})`;
+        ctx.fillRect(pt.x+jx, pt.y+jy, pt.size, pt.size);
+      });
+    }
+
+    // ---- DOM overlay sync (divider + tagline; logo opacity is handled above in 'reveal'/'done') ----
+    if(elapsed >= T.reveal[1]){
+      divider.style.width = '140px';
+    }
+    if(elapsed >= T.taglineIn[0]){
+      tagline.style.opacity = 1;
+      tagline.style.transform = 'translate(-50%, 0)';
+    }
+    if(elapsed >= T.finalHold[1] - 50 && !redirected){
+      redirected = true;
+      sessionStorage.setItem('fromLoader','1');
+      setTimeout(()=>{ window.location.href = 'index.html'; }, 550);
+    }
+  }
+
+  let startTime = null;
+  let rafId = null;
+  let redirected = false;
+  function loop(ts){
+    if(startTime === null) startTime = ts;
+    const elapsed = ts - startTime;
+    update(elapsed);
+    if(elapsed < TOTAL + 50){
+      rafId = requestAnimationFrame(loop);
+    } else {
+      // keep rendering the final held frame so particles never disappear
+      rafId = requestAnimationFrame(loop);
+    }
+  }
+
+  function playAnimation(){
+    cancelAnimationFrame(rafId);
+    startTime = null;
+    currentPhase = null;
+    lastNoiseReshuffle = 0;
+    divider.style.width = '0%';
+    tagline.style.opacity = 0;
+    tagline.style.transform = 'translate(-50%, 8px)';
+    logoText.style.opacity = 0;
+    initParticles();
+    rafId = requestAnimationFrame(loop);
+  }
+
+  resize();
+  if(document.fonts && document.fonts.ready){
+    document.fonts.load('700 150px Outfit').then(()=>{
+      rebuildTargets();
+      playAnimation();
+    });
+  } else {
+    rebuildTargets();
+    playAnimation();
+  }
+})();
+</script>
+</body>
+</html>

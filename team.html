@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ODYSSEY — Meet the Crew · Rovers &amp; Drones Team</title>
+  <meta name="description" content="Meet the crew behind ODYSSEY — the Rovers & Drones Team of K. J. Somaiya School of Engineering. Watch the team emerge from the wormhole." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/css/main.css" />
+  <link rel="stylesheet" href="assets/css/team.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+</head>
+<body>
+
+  <!-- Fixed background video -->
+  <div class="team-bg" aria-hidden="true">
+    <video class="team-bg-video" autoplay muted loop playsinline poster="assets/img/bg-galaxy.jpg">
+      <source src="assets/video/team-bg.mp4" type="video/mp4" />
+    </video>
+    <div class="team-bg-scrim"></div>
+  </div>
+
+  <!-- Page header -->
+  <header class="team-header">
+    <div class="container">
+      <span class="eyebrow">Core Engineering &amp; Management</span>
+      <h1 class="team-title serif">Meet the <span class="grad-text">Crew</span></h1>
+      <p class="team-intro">The engineers and builders behind the mission — emerging, one energy packet at a time, from the ODYSSEY wormhole.</p>
+    </div>
+  </header>
+
+  <!-- Hierarchy stage: wormhole at the bottom, pods emerge from it -->
+  <section class="stage" id="stage" aria-label="ODYSSEY team hierarchy">
+    <div class="tree" id="tree">
+      <div class="row row-leadership" id="rowLeadership"></div>
+      <div class="row row-leads" id="rowLeads"></div>
+    </div>
+
+   
+  </section>
+
+  <!-- Join band -->
+  <section class="join-band">
+    <div class="container">
+      <div class="join-inner reveal">
+        <span class="eyebrow">Open Launch Window</span>
+        <h2 class="serif">Want to join the crew?</h2>
+        <p>We are always looking for engineers, builders and dreamers ready to push the frontier with us.</p>
+        <a href="mailto:odyssey.rovers@somaiya.edu" class="btn btn-primary">Get in touch ↗</a>
+      </div>
+    </div>
+  </section>
+
+  <footer class="site-footer" data-footer></footer>
+
+  <script src="assets/js/nav.js"></script>
+  <script src="assets/js/team.js"></script>
+</body>
+</html>

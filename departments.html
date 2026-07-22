@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Departments — ODYSSEY · Rovers &amp; Drones Team</title>
+  <meta name="description" content="Explore the four departments of ODYSSEY — Software &amp; AI, Electronics, Mechanical, and PR &amp; Management — the crew behind K. J. Somaiya School of Engineering's rovers and drones." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/css/main.css" />
+  <link rel="stylesheet" href="assets/css/departments.css" />
+</head>
+<body>
+
+  <!-- ===================== HERO / PLANET ORBIT CAROUSEL ===================== -->
+  <section class="dept-hero" id="deptHero" aria-label="Department selector">
+    <!-- Dim backdrop + parallax star / nebula layers -->
+    <div class="dept-hero-backdrop" aria-hidden="true"></div>
+    <div class="stars-layer" id="stars1" aria-hidden="true"></div>
+    <div class="stars-layer-2" id="stars2" aria-hidden="true"></div>
+    <div class="nebula-layer" id="nebula" aria-hidden="true"></div>
+
+    <!-- Header -->
+    <div class="dept-hero-head">
+      <span class="eyebrow">Explore Our Departments</span>
+    </div>
+
+    <!-- Orbiting planets -->
+    <div class="planets-container" id="planetsContainer" aria-hidden="true">
+      <div class="planet" id="planet-0" role="button" tabindex="-1" aria-label="Software &amp; AI">
+        <img src="assets/img/planets/neptune.png" alt="" loading="eager" />
+        <div class="planet-glow"></div>
+      </div>
+      <div class="planet" id="planet-1" role="button" tabindex="-1" aria-label="Electronics">
+        <img src="assets/img/planets/mercury.png" alt="" loading="eager" />
+        <div class="planet-glow"></div>
+      </div>
+      <div class="planet" id="planet-2" role="button" tabindex="-1" aria-label="Mechanical">
+        <img src="assets/img/planets/mars.png" alt="" loading="eager" />
+        <div class="planet-glow"></div>
+      </div>
+      <div class="planet" id="planet-3" role="button" tabindex="-1" aria-label="PR &amp; Management">
+        <img src="assets/img/planets/jupiter.png" alt="" loading="eager" />
+        <div class="planet-glow"></div>
+      </div>
+    </div>
+
+    <!-- Glass info panel -->
+    <div class="glass-panel" id="glassPanel">
+      <p class="glass-kicker" id="deptKicker">Department 01</p>
+      <h1 class="serif glass-title" id="deptName">Software &amp; AI</h1>
+      <p class="glass-subtitle" id="deptSubtitle">Intelligence Behind the Mission</p>
+    </div>
+
+    <!-- Nav arrows -->
+    <button class="nav-arrow prev" id="prevBtn" aria-label="Previous department">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="15 18 9 12 15 6"></polyline></svg>
+    </button>
+    <button class="nav-arrow next" id="nextBtn" aria-label="Next department">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="9 6 15 12 9 18"></polyline></svg>
+    </button>
+
+    <!-- Dot rail + indicator -->
+    <div class="dept-controls">
+      <div class="dept-dots" id="deptDots" role="tablist" aria-label="Choose department"></div>
+      <span class="indicator" id="indicatorText">01&nbsp;/&nbsp;04</span>
+    </div>
+  </section>
+
+  <!-- ===================== SYNCHRONIZED DETAIL SECTION ===================== -->
+  <section class="section dept-detail-section">
+    <div class="container">
+      <div class="detail-head reveal">
+        <span class="eyebrow">Inside the Department</span>
+        <h2 class="grad-text">Four crews, <b>one trajectory.</b></h2>
+        <p>Every rover that rolls and every drone that flies is the sum of four disciplines working in lock-step. Orbit a planet above to see what each crew owns.</p>
+      </div>
+
+      <article class="detail-card reveal" id="detailCard" data-delay="120" aria-live="polite">
+        <div class="detail-card-glow" aria-hidden="true"></div>
+        <div class="detail-card-inner" id="detailInner">
+          <div class="detail-top">
+            <span class="detail-index" id="detailIndex">01</span>
+            <span class="detail-eyebrow" id="detailEyebrow">Software &amp; AI</span>
+          </div>
+          <h3 class="serif detail-name" id="detailName">Software &amp; AI</h3>
+          <p class="detail-desc" id="detailDesc"></p>
+          <div class="detail-chips" id="detailChips"></div>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- ===================== CLOSING STRIP ===================== -->
+  <section class="section closing-strip">
+    <div class="container">
+      <div class="closing-inner reveal">
+        <span class="eyebrow">04 departments · one mission</span>
+        <h2 class="serif">The people behind the <b>machines.</b></h2>
+        <p>Different orbits, the same destination — engineering autonomous systems that explore the frontier.</p>
+        <div class="closing-actions">
+          <a href="team.html" class="btn btn-primary">Meet the crew →</a>
+          <a href="index.html" class="btn btn-ghost">Back to base</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="site-footer" data-footer></footer>
+
+  <script src="assets/js/nav.js"></script>
+  <script src="assets/js/departments.js"></script>
+</body>
+</html>
